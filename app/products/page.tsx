@@ -1,73 +1,73 @@
-"use client"; // Označuje client komponentu
+"use client";
 
+import Button from "@/components/Button";
 import { Product } from "@/types";
 import { useEffect, useState } from "react";
 
-const DEFAULT_WISHLIST_ID = "demoWishlist"; // ID výchozího wishlistu
-
 const ProductsPage = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+const [products, setProducts] = useState<Product[]>([]);
+const [selectedWishlist, setSelectedWishlist] = useState<any>(null);
+;
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/products", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": "demoUser", // ID uživatele, který načítá produkty
-          },
-        }); // Načítání z endpointu
-        if (!response.ok) {
-          throw new Error("Chyba při načítání produktů");
-        }
-        const data: Product[] = await response.json();
-        setProducts(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+  const wishlistStr = typeof window !== "undefined" ? localStorage.getItem("selectedWishlist") : null;
+  setSelectedWishlist(wishlistStr ? JSON.parse(wishlistStr) : null);
 
-    fetchProducts();
-  }, []);
-
-  const addToWishlist = async (productId: string) => {
+  const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": "demoUser", // ID uživatele, který přidává produkt do wishlistu
-        },
-        body: JSON.stringify({
-          wishlistId: DEFAULT_WISHLIST_ID,
-          productId,
-        }),
-      });
-
+      const response = await fetch("http://localhost:3000/api/products");
       if (!response.ok) {
-        throw new Error("Produkt se nepodařilo přidat do wishlistu.");
+        throw new Error("Chyba při načítání produktů");
       }
-
-      console.log(`Produkt ${productId} přidán do wishlistu!`);
+      const data: Product[] = await response.json();
+      setProducts(data);
     } catch (error) {
       console.error(error);
     }
   };
 
+  fetchProducts();
+}, []);
+
+  const addToWishlist = async (product: Product) => {
+  if (!selectedWishlist) {
+    alert("Nejprve vyberte wishlist.");
+    return;
+  }
+  try {
+    await fetch("http://localhost:3000/api/wishlists-products", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: 'addProduct',
+        wishlistId: selectedWishlist.id,
+        product,
+      }),
+    });
+    console.log(`Produkt ${product.id} přidán do wishlistu!`);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
   return (
     <ul className="max-w-3xl mx-auto p-4">
+       {selectedWishlist && (
+      <div className="mb-6">
+        <h2 className="text-xl font-bold">
+          Wishlist: {selectedWishlist.name}
+        </h2>
+      </div>
+    )}
       {products.map((product) => (
         <li key={product.id} className="flex items-center gap-4 border-b pb-2 mb-2">
           <span className="font-semibold">{product.name}</span>
           <span className="text-gray-500">{product.price} Kč</span>
-          {/* Tlačítko Přidat do wishlistu */}
-          <button 
-            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-            onClick={() => addToWishlist(product.id)}
-          >
+          <Button onClick={() => addToWishlist(product)}>
             Přidat do wishlistu
-          </button>
+          </Button>
         </li>
       ))}
     </ul>
