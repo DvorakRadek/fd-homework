@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Wishlist, Product } from "@/types";
 import { fetchData } from "@/lib/fetchData";
-import Button from "@/components/Button";
+import ProductList from "@/components/ProductList";
+import Link from "next/link";
 
 const WishlistPage = () => {
   const { id } = useParams();
@@ -15,12 +16,10 @@ const WishlistPage = () => {
     const fetchWishlists = async () => {
       try {
         const data = await fetchData("wishlists");
-
         const foundWishlist = data.find((w: Wishlist) => w.id === id);
         if (!foundWishlist) {
-          throw new Error("Wishlist nenalezen");
+          alert("Wishlist nenalezen");
         }
-
         setWishlist(foundWishlist);
       } catch (error) {
         console.error(error);
@@ -72,24 +71,10 @@ const WishlistPage = () => {
       <div className="bg-white rounded shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Produkty ve wishlistu</h3>
         <ul>
-          {wishlist.products.length === 0 ? (
-            <li className="text-gray-400 italic">Tento wishlist je prázdný.</li>
-          ) : (
-            wishlist.products.map((product: Product) => (
-              <li
-                key={product.id}
-                className="flex items-center justify-between border-b py-3 last:border-b-0"
-              >
-                <div>
-                  <span className="font-semibold">{product.name}</span>
-                  <span className="ml-2 text-gray-500">{product.price} Kč</span>
-                </div>
-                <Button onClick={() => removeFromWishlist(product)}>
-                  Smazat
-                </Button>
-              </li>
-            ))
-          )}
+          {wishlist.products.length === 0
+            ? <li className="text-gray-400 italic">Tento wishlist je prázdný. Přejít na <Link href="/products" className="text-blue-500 hover:underline">produkty</Link>.</li>
+            : <ProductList products={wishlist.products} buttonFn={removeFromWishlist} buttonText="Smazat" />
+          }
         </ul>
       </div>
     </div>
