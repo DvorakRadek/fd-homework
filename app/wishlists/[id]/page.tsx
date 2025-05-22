@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Wishlist, Product } from "@/types";
+import { fetchData } from "@/lib/fetchData";
+import Button from "@/components/Button";
 
 const WishlistPage = () => {
   const { id } = useParams();
@@ -12,13 +14,9 @@ const WishlistPage = () => {
   useEffect(() => {
     const fetchWishlists = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/wishlists");
-        if (!response.ok) {
-          throw new Error("Chyba při načítání wishlistů");
-        }
-        const wishlists: Wishlist[] = await response.json();
+        const data = await fetchData("wishlists");
 
-        const foundWishlist = wishlists.find((w) => w.id === id);
+        const foundWishlist = data.find((w: Wishlist) => w.id === id);
         if (!foundWishlist) {
           throw new Error("Wishlist nenalezen");
         }
@@ -35,16 +33,13 @@ const WishlistPage = () => {
 
   const removeFromWishlist = async (product: Product) => {
     try {
-      await fetch("http://localhost:3000/api/wishlists-products", {
+      await fetchData("wishlists-products", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           action: "removeProduct",
           wishlistId: id,
           product,
-        }),
+        },
       });
       setWishlist((prev) =>
         prev
@@ -57,35 +52,46 @@ const WishlistPage = () => {
   };
 
   if (!wishlist) {
-    return <p>Načítám wishlist...</p>;
+    return (
+      <div className="max-w-3xl mx-auto p-6">
+        <div className="bg-white rounded shadow p-6 text-center">
+          <p className="text-gray-500">Načítám wishlist...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">{wishlist.name}</h2>
+    <div className="max-w-3xl mx-auto p-6">
+      <div className="bg-white rounded shadow p-6 mb-6">
+        <h2 className="text-2xl font-bold mb-2">{wishlist.name}</h2>
         {wishlist.description && (
-          <p className="text-gray-600 mt-1">{wishlist.description}</p>
+          <p className="text-gray-600">{wishlist.description}</p>
         )}
       </div>
-      <ul>
-        {wishlist.products.length === 0 ? (
-          <li className="text-gray-500 italic">Tento wishlist je prázdný.</li>
-        ) : (
-          wishlist.products.map((product: Product) => (
-            <li key={product.id} className="flex items-center gap-4 border-b pb-2 mb-2">
-              <span className="font-semibold">{product.name}</span>
-              <span className="text-gray-500">{product.price} Kč</span>
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                onClick={() => removeFromWishlist(product)}
+      <div className="bg-white rounded shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">Produkty ve wishlistu</h3>
+        <ul>
+          {wishlist.products.length === 0 ? (
+            <li className="text-gray-400 italic">Tento wishlist je prázdný.</li>
+          ) : (
+            wishlist.products.map((product: Product) => (
+              <li
+                key={product.id}
+                className="flex items-center justify-between border-b py-3 last:border-b-0"
               >
-                Smazat
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
+                <div>
+                  <span className="font-semibold">{product.name}</span>
+                  <span className="ml-2 text-gray-500">{product.price} Kč</span>
+                </div>
+                <Button onClick={() => removeFromWishlist(product)}>
+                  Smazat
+                </Button>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
     </div>
   );
 };

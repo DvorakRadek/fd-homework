@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Wishlist } from "@/types";
+import { fetchData } from "@/lib/fetchData";
 
 const WishlistsPage = () => {
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
@@ -14,16 +15,8 @@ const WishlistsPage = () => {
   };
 
   const fetchWishlists = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/api/wishlists");
-      if (!response.ok) {
-        throw new Error("Chyba při načítání wishlistů");
-      }
-      const data: Wishlist[] = await response.json();
-      setWishlists(data);
-    } catch (error) {
-      console.error(error);
-    }
+    const data = await fetchData("wishlists");
+    setWishlists(data);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -34,15 +27,13 @@ const WishlistsPage = () => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:3000/api/wishlists", {
+      await fetchData("wishlists", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, description: form.description }),
+        body: { name: form.name, description: form.description },
       });
-      if (!res.ok) throw new Error("Chyba při vytváření wishlistu");
       setForm({ name: "", description: "" });
       setFormMessage("Wishlist byl úspěšně vytvořen!");
-      await fetchWishlists(); // Refresh the list here
+      await fetchWishlists();
     } catch (err) {
       setFormMessage("Chyba při vytváření wishlistu.");
     }
@@ -50,13 +41,11 @@ const WishlistsPage = () => {
 
   const handleDeleteWishlist = async (wishlistId: string) => {
     try {
-      const res = await fetch("http://localhost:3000/api/wishlists", {
+      await fetchData("wishlists", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wishlistId }),
+        body: { wishlistId },
       });
-      if (!res.ok) throw new Error("Chyba při mazání wishlistu");
-      await fetchWishlists(); // Refresh the list after deletion
+      await fetchWishlists();
     } catch (err) {
       alert("Chyba při mazání wishlistu.");
     }
@@ -67,58 +56,79 @@ const WishlistsPage = () => {
   }, []);
 
   return (
-  <>
-        <ul className="max-w-3xl mx-auto p-4">
-      {wishlists.map((wishlist) => (
-        <li key={wishlist.id} className="border-b pb-2 mb-2 flex items-center gap-4">
-          <Link
-            href={`/wishlists/${wishlist.id}`}
-            className="hover:underline font-semibold flex-1"
-            onClick={() => localStorage.setItem("selectedWishlist", JSON.stringify(wishlist))}
-          >
-            {wishlist.name} ({wishlist.products.length} položek)
-          </Link>
-          <button
-            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-            onClick={() => handleDeleteWishlist(wishlist.id)}
-          >
-            Smazat
-          </button>
-        </li>
-      ))}
-    </ul>
-    <form
-      className="max-w-3xl mx-auto p-4 border rounded mt-8 flex flex-col gap-3"
-      onSubmit={handleFormSubmit}
-    >
-      <h3 className="text-lg font-bold">Přidat nový wishlist</h3>
-      <input
-        type="text"
-        name="name"
-        placeholder="Název wishlistu"
-        value={form.name}
-        onChange={handleFormChange}
-        required
-        className="border px-2 py-1 rounded"
-      />
-      <input
-        type="text"
-        name="description"
-        placeholder="Popis (volitelné)"
-        value={form.description}
-        onChange={handleFormChange}
-        className="border px-2 py-1 rounded"
-      />
-      <button
-        type="submit"
-        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+    <div className="max-w-3xl mx-auto p-6">
+      <div className="bg-white rounded shadow p-6 mb-6">
+        <h2 className="text-2xl font-bold mb-4">Seznam wishlistů</h2>
+        <ul>
+          {wishlists.map((wishlist) => (
+            <li
+              key={wishlist.id}
+              className="flex items-center justify-between border-b py-3"
+            >
+              <div>
+                <Link
+                  href={`/wishlists/${wishlist.id}`}
+                  className="text-blue-700 hover:underline font-semibold"
+                  onClick={() =>
+                    localStorage.setItem(
+                      "selectedWishlist",
+                      JSON.stringify(wishlist)
+                    )
+                  }
+                >
+                  {wishlist.name}
+                </Link>
+                <span className="ml-2 text-gray-500">
+                  ({wishlist.products.length} položek)
+                </span>
+              </div>
+              <button
+                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                onClick={() => handleDeleteWishlist(wishlist.id)}
+              >
+                Smazat
+              </button>
+            </li>
+          ))}
+          {wishlists.length === 0 && (
+            <li className="text-gray-400 italic">Žádné wishlisty.</li>
+          )}
+        </ul>
+      </div>
+      <form
+        className="bg-white rounded shadow p-6 flex flex-col gap-4"
+        onSubmit={handleFormSubmit}
       >
-        Přidat wishlist
-      </button>
-      {formMessage && <div className="text-sm mt-2">{formMessage}</div>}
-    </form>
-  </>
+        <h3 className="text-lg font-semibold mb-2">Přidat nový wishlist</h3>
+        <input
+          type="text"
+          name="name"
+          placeholder="Název wishlistu"
+          value={form.name}
+          onChange={handleFormChange}
+          required
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+        />
+        <input
+          type="text"
+          name="description"
+          placeholder="Popis (volitelné)"
+          value={form.description}
+          onChange={handleFormChange}
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition font-semibold"
+        >
+          Přidat wishlist
+        </button>
+        {formMessage && (
+          <div className="text-red-500 text-sm mt-1">{formMessage}</div>
+        )}
+      </form>
+    </div>
   );
-}
+};
 
 export default WishlistsPage;

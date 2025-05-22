@@ -1,0 +1,40 @@
+[
+  {
+    "id": "f188c7ba-3f8d-4159-9105-b973fca89c94",
+    "name": "Nový list",
+    "description": "",
+    "products": [
+      {
+        "id": "1",
+        "name": "Nike Air Max 90",
+        "price": 2999,
+        "inStock": true
+      },
+      {
+        "id": "5",
+        "name": "New Balance 574",
+        "price": 2199,
+        "inStock": true
+      }
+    ]
+  },
+  {
+    "id": "ff766ae4-e22e-4332-bf0a-c50c653ee1f8",
+    "name": "Další",
+    "description": "",
+    "products": [
+      {
+        "id": "5",
+        "name": "New Balance 574",
+        "price": 2199,
+        "inStock": true
+      },
+      {
+        "id": "8",
+        "name": "Asics Gel-Lyte III",
+        "price": 2399,
+        "inStock": true
+      }
+    ]
+  }
+]

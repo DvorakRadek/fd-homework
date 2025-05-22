@@ -1,0 +1,62 @@
+[
+  {
+    "id": "1",
+    "name": "Nike Air Max 90",
+    "price": 2999,
+    "inStock": true
+  },
+  {
+    "id": "2",
+    "name": "Adidas Ultraboost 21",
+    "price": 3499,
+    "inStock": true
+  },
+  {
+    "id": "3",
+    "name": "Converse Chuck Taylor All Star",
+    "price": 1899,
+    "inStock": false
+  },
+  {
+    "id": "4",
+    "name": "Puma RS-X",
+    "price": 2599,
+    "inStock": true
+  },
+  {
+    "id": "5",
+    "name": "New Balance 574",
+    "price": 2199,
+    "inStock": true
+  },
+  {
+    "id": "6",
+    "name": "Vans Old Skool",
+    "price": 1799,
+    "inStock": false
+  },
+  {
+    "id": "7",
+    "name": "Reebok Classic Leather",
+    "price": 1999,
+    "inStock": true
+  },
+  {
+    "id": "8",
+    "name": "Asics Gel-Lyte III",
+    "price": 2399,
+    "inStock": true
+  },
+  {
+    "id": "9",
+    "name": "Jordan 1 Retro High",
+    "price": 4999,
+    "inStock": false
+  },
+  {
+    "id": "10",
+    "name": "Saucony Jazz Original",
+    "price": 1699,
+    "inStock": true
+  }
+]

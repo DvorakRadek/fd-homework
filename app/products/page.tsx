@@ -1,76 +1,80 @@
 "use client";
 
 import Button from "@/components/Button";
+import { fetchData } from "@/lib/fetchData";
 import { Product } from "@/types";
 import { useEffect, useState } from "react";
 
 const ProductsPage = () => {
-const [products, setProducts] = useState<Product[]>([]);
-const [selectedWishlist, setSelectedWishlist] = useState<any>(null);
-;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedWishlist, setSelectedWishlist] = useState<any>(null);
 
   useEffect(() => {
-  const wishlistStr = typeof window !== "undefined" ? localStorage.getItem("selectedWishlist") : null;
-  setSelectedWishlist(wishlistStr ? JSON.parse(wishlistStr) : null);
+    const wishlistStr =
+      typeof window !== "undefined"
+        ? localStorage.getItem("selectedWishlist")
+        : null;
+    setSelectedWishlist(wishlistStr ? JSON.parse(wishlistStr) : null);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/api/products");
-      if (!response.ok) {
-        throw new Error("Chyba při načítání produktů");
-      }
-      const data: Product[] = await response.json();
+    const fetchProducts = async () => {
+      const data = await fetchData("products");
       setProducts(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    };
 
-  fetchProducts();
-}, []);
+    fetchProducts();
+  }, []);
 
   const addToWishlist = async (product: Product) => {
-  if (!selectedWishlist) {
-    alert("Nejprve vyberte wishlist.");
-    return;
-  }
-  try {
-    await fetch("http://localhost:3000/api/wishlists-products", {
+    if (!selectedWishlist) {
+      alert("Nejprve vyberte wishlist.");
+      return;
+    }
+
+    await fetchData("wishlists-products", {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: 'addProduct',
+      body: {
+        action: "addProduct",
         wishlistId: selectedWishlist.id,
         product,
-      }),
+      },
     });
-    console.log(`Produkt ${product.id} přidán do wishlistu!`);
-  } catch (error) {
-    console.error(error);
-  }
-};
+  };
 
   return (
-    <ul className="max-w-3xl mx-auto p-4">
-       {selectedWishlist && (
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">
-          Wishlist: {selectedWishlist.name}
-        </h2>
+    <div className="max-w-3xl mx-auto p-6">
+      {selectedWishlist && (
+        <div className="bg-white rounded shadow p-6 mb-6">
+          <h2 className="text-xl font-bold mb-2">
+            Wishlist: {selectedWishlist.name}
+          </h2>
+          {selectedWishlist.description && (
+            <p className="text-gray-600">{selectedWishlist.description}</p>
+          )}
+        </div>
+      )}
+      <div className="bg-white rounded shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">Produkty</h3>
+        <ul>
+          {products.length === 0 && (
+            <li className="text-gray-400 italic">Žádné produkty.</li>
+          )}
+          {products.map((product) => (
+            <li
+              key={product.id}
+              className="flex items-center justify-between border-b py-3 last:border-b-0"
+            >
+              <div>
+                <span className="font-semibold">{product.name}</span>
+                <span className="ml-2 text-gray-500">{product.price} Kč</span>
+              </div>
+              <Button onClick={() => addToWishlist(product)}>
+                Přidat do wishlistu
+              </Button>
+            </li>
+          ))}
+        </ul>
       </div>
-    )}
-      {products.map((product) => (
-        <li key={product.id} className="flex items-center gap-4 border-b pb-2 mb-2">
-          <span className="font-semibold">{product.name}</span>
-          <span className="text-gray-500">{product.price} Kč</span>
-          <Button onClick={() => addToWishlist(product)}>
-            Přidat do wishlistu
-          </Button>
-        </li>
-      ))}
-    </ul>
+    </div>
   );
 };
 
