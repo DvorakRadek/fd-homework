@@ -1,8 +1,8 @@
-# FD-homework#
+# FD-homework
 
 # Installation
-  - git clone 
-  - cd
+  - git clone https://github.com/DvorakRadek/fd-homework.git
+  - cd fd-homework
   - npm install
   - npm run dev
 
